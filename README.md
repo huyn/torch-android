@@ -49,10 +49,14 @@ If on ubuntu, install the following packages: `sudo apt-get install libx32gcc-4.
 Default is to build with CUDA - so make sure you installed NVIDIA CodeWorks for Android and its nvcc is in your PATH.
 Otherwise, set WITH_CUDA=OFF in build.sh
 
-0. git submodule update --init --recursive
-1. Optionally, open build.sh and modify ARCH (to match your device architecture) and WITH_CUDA variables.
-2. run build script:
-3 ./build.sh 
+OpenBLAS is supported.
+Inspired by [issue #68](https://github.com/soumith/torch-android/issues/68) and [ExenVitor](https://github.com/ExenVitor/torch-android/tree/lite_with_openblas) based on [OpenBLAS](https://github.com/xianyi/OpenBLAS)
+
+1. git submodule update --init --recursive
+2. git clone https://github.com/xianyi/OpenBLAS.git under dir external
+3. Optionally, open build.sh and modify ARCH (to match your device architecture) and WITH_CUDA variables.
+4. run build script:
+  ./build.sh 
 
 You can use torch in your android apps. The relevant directories are
 * install/include - include directories
