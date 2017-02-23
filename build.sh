@@ -10,7 +10,7 @@ ARCH=${ARCH:-"v8"}
 # Default is to build with CUDA.
 # Make sure you installed https://developer.nvidia.com/codeworks-android.
 # Otherwise, set WITH_CUDA to OFF.
-WITH_CUDA=${WITH_CUDA:-"ON"}
+WITH_CUDA=${WITH_CUDA:-"OFF"}
 
 if [[ "$ARCH" == "v8" ]]; then
     APP_ABI=arm64-v8a
