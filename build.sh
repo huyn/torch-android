@@ -5,7 +5,7 @@
 NDKABI=21
 
 # Default architecture is V8
-ARCH=${ARCH:-"v7n"}
+ARCH=${ARCH:-"v8"}
 
 # Default is to build with CUDA.
 # Make sure you installed https://developer.nvidia.com/codeworks-android.
@@ -135,6 +135,33 @@ cd distro/exe/luajit-rocks/luajit-2.1
 $MAKE $MAKEARGS HOST_CC="$HOST_CC" CC="gcc" HOST_SYS=$unamestr TARGET_SYS=Linux CROSS="${TOOLCHAIN}/bin/${HOST}-" TARGET_FLAGS="$ANDROID_CFLAGS"
 
 echo "Done installing Lua"
+
+cd $SCRIPT_ROOT_DIR
+(cmake -E make_directory build && cd build && do_cmake_config ..) || exit 1
+
+echo "Start to compile OpenBLAS"
+cd external/OpenBLAS
+
+NDK_ROOT=$ANDROID_NDK
+echo "NDK_ROOT=$NDK_ROOT, APP_ABI=$APP_ABI"
+PATHI=$PATH
+target="ARMV8 BINARY=64"
+arch="arch-arm64"
+CCFolder="aarch64-linux-android-4.9"
+CC="aarch64-linux-android-gcc" 
+ANDROID_ABI="android-21"
+
+echo ${NDK_ROOT}/toolchains/${CCFolder}/prebuilt/darwin-x86_64/bin
+export PATH=${NDK_ROOT}/toolchains/${CCFolder}/prebuilt/darwin-x86_64/bin:${PATHI}
+command="make TARGET=${target} HOSTCC=gcc CC=${CC} USE_THREAD=0 USE_OPENMP=0 NOFORTRAN=1 CFLAGS=--sysroot=${NDK_ROOT}/platforms/${ANDROID_ABI}/${arch} PREFIX=${INSTALL_DIR}"
+ 
+echo $command
+$command
+    
+command="make PREFIX=${INSTALL_DIR} install"
+$command
+
+echo "End compile OpenBLAS"
 
 cd $SCRIPT_ROOT_DIR
 (cmake -E make_directory build && cd build && do_cmake_config ..) || exit 1
