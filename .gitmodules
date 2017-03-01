@@ -8,3 +8,6 @@
 [submodule "external/libjpeg-turbo"]
 	path = external/libjpeg-turbo
 	url = https://github.com/libjpeg-turbo/libjpeg-turbo
+[submodule "external/openblas"]
+	path = external/openblas
+	url = https://github.com/xianyi/OpenBLAS
