@@ -93,7 +93,7 @@ fi
 export TOOLCHAIN="$NDK/toolchains/${HOST}-${TOOLCHAIN_VERSION}/prebuilt/${BUILD_PLATFORM}"
 
 export TORCH_CUDA_ARCH_LIST="${COMPUTE_NAME}"
-
+#-DANDROID_STANDALONE_TOOLCHAIN="${SCRIPT_ROOT_DIR}/standalone-toochains" \
 do_cmake_config() {
 cmake $1 -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_TOOLCHAIN_FILE="$SCRIPT_ROOT_DIR/cmake/android.toolchain.cmake" \
     -DANDROID_NDK="${ANDROID_NDK}" -DANDROID_ABI="${APP_ABI}" \
@@ -116,6 +116,36 @@ if [[ "$WITH_CUDA" == "ON" ]]; then
         && make install) && echo "FindCuda bits of CMake 3.6 installed" || exit 1
 fi
 
+	cd $SCRIPT_ROOT_DIR
+	(cmake -E make_directory build && cd build && do_cmake_config ..) || exit 1
+
+	echo "Start to compile OpenBLAS"
+	cd external/OpenBLAS
+
+	NDK_ROOT=$ANDROID_NDK
+	echo "NDK_ROOT=$NDK_ROOT, APP_ABI=$APP_ABI"
+	echo $PATH
+	PATHI=$PATH
+	target="ARMV8 BINARY=64"
+	arch="arch-arm64"
+	CCFolder="aarch64-linux-android-4.9"
+	#CC="aarch64-linux-android-gcc FC=aarch64-linux-android-gfortran" 
+	CC="aarch64-linux-android-gcc" 
+	ANDROID_ABI="android-21"
+
+	export PATH=${PATHI}:/home/huyaonan/arm64-toolchain/bin
+	echo $PATH
+	#command="make TARGET=${target} HOSTCC=gcc CC=${CC} USE_THREAD=1 USE_OPENMP=1 USE_LAPACK=1 CFLAGS=--sysroot=${NDK_ROOT}/platforms/${ANDROID_ABI}/${arch} libs netlib"
+	command="make TARGET=${target} HOSTCC=gcc CC=${CC} USE_THREAD=1 USE_OPENMP=1 NOFORTRAN=1 libs"
+
+	echo $command
+	$command
+	    
+	command="make PREFIX=${INSTALL_DIR} install"
+	$command
+
+	echo "End compile OpenBLAS"
+
 cd $SCRIPT_ROOT_DIR
 
 cd external/libpng && \
@@ -136,32 +166,36 @@ $MAKE $MAKEARGS HOST_CC="$HOST_CC" CC="gcc" HOST_SYS=$unamestr TARGET_SYS=Linux 
 
 echo "Done installing Lua"
 
-cd $SCRIPT_ROOT_DIR
-(cmake -E make_directory build && cd build && do_cmake_config ..) || exit 1
+if [[ "$ARCH" == "v7" ]]; then
+	cd $SCRIPT_ROOT_DIR
+	(cmake -E make_directory build && cd build && do_cmake_config ..) || exit 1
 
-echo "Start to compile OpenBLAS"
-cd external/OpenBLAS
+	echo "Start to compile OpenBLAS"
+	cd external/OpenBLAS
 
-NDK_ROOT=$ANDROID_NDK
-echo "NDK_ROOT=$NDK_ROOT, APP_ABI=$APP_ABI"
-PATHI=$PATH
-target="ARMV8 BINARY=64"
-arch="arch-arm64"
-CCFolder="aarch64-linux-android-4.9"
-CC="aarch64-linux-android-gcc" 
-ANDROID_ABI="android-21"
+	NDK_ROOT=$ANDROID_NDK
+	echo "NDK_ROOT=$NDK_ROOT, APP_ABI=$APP_ABI"
+	echo $PATH
+	PATHI=$PATH
+	target="ARMV8 BINARY=64"
+	arch="arch-arm64"
+	CCFolder="aarch64-linux-android-4.9"
+	CC="aarch64-linux-android-gcc FC=aarch64-linux-android-gfortran" 
+	ANDROID_ABI="android-21"
 
-echo ${NDK_ROOT}/toolchains/${CCFolder}/prebuilt/darwin-x86_64/bin
-export PATH=${NDK_ROOT}/toolchains/${CCFolder}/prebuilt/darwin-x86_64/bin:${PATHI}
-command="make TARGET=${target} HOSTCC=gcc CC=${CC} USE_THREAD=0 USE_OPENMP=0 NOFORTRAN=1 CFLAGS=--sysroot=${NDK_ROOT}/platforms/${ANDROID_ABI}/${arch} PREFIX=${INSTALL_DIR}"
- 
-echo $command
-$command
-    
-command="make PREFIX=${INSTALL_DIR} install"
-$command
+	export PATH=${PATHI}:/home/huyaonan/arm64-toolchain/bin
+	echo $PATH
+	#command="make TARGET=${target} HOSTCC=gcc CC=${CC} USE_THREAD=1 USE_OPENMP=1 USE_LAPACK=1 CFLAGS=--sysroot=${NDK_ROOT}/platforms/${ANDROID_ABI}/${arch} libs netlib"
+	command="make TARGET=${target} HOSTCC=gcc CC=${CC} USE_THREAD=1 USE_OPENMP=1 USE_LAPACK=1 libs netlib"
 
-echo "End compile OpenBLAS"
+	echo $command
+	$command
+	    
+	command="make PREFIX=${INSTALL_DIR} install"
+	$command
+
+	echo "End compile OpenBLAS"
+fi
 
 cd $SCRIPT_ROOT_DIR
 (cmake -E make_directory build && cd build && do_cmake_config ..) || exit 1
